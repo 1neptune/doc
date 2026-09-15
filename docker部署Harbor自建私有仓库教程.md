@@ -110,7 +110,7 @@ systemctl restart docker
 # 在 Harbor Web 界面创建一个项目 web
 
 http://172.19.6.98/harbor/projects
- 
+
 admin/Harbor@123456
 
 # Dockerfile 构建
@@ -209,16 +209,52 @@ networks:
       config:
         - subnet: 192.168.2.0/24
           gateway: 192.168.2.1
+          
+docker stop web-nginx
+docker rm web-nginx
+
+# 多版本部署
+services:
+  web-nginx-v1:
+    image: 172.19.6.98/web/web-nginx:v1
+    container_name: web-nginx-v1
+    ports:
+      - "8091:80"
+    restart: always
+    networks:
+      nginxnet:
+        ipv4_address: 192.168.1.10
+
+  web-nginx-v2:
+    image: 172.19.6.98/web/web-nginx:v2
+    container_name: web-nginx-v2
+    ports:
+      - "8092:80"
+    restart: always
+    networks:
+      nginxnet:
+        ipv4_address: 192.168.1.11
+
+networks:
+  nginxnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+          
 
 
 docker compose up -d
 docker compose ps
 
 
+
+
 # 查看每个容器具体网段
 docker ps -q | xargs -I {} docker inspect {} \
   --format '{{.Name}} -> {{range $k,$v := .NetworkSettings.Networks}}{{$k}}:{{$v.IPAddress}} {{end}}'
- 
+
  # 输出内容
 /web-nginx -> web-nginx_default:172.21.0.2 
 /nginx -> harbor_harbor:172.18.0.10 
