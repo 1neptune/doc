@@ -219,8 +219,8 @@ docker compose ps
 docker ps -q | xargs -I {} docker inspect {} \
   --format '{{.Name}} -> {{range $k,$v := .NetworkSettings.Networks}}{{$k}}:{{$v.IPAddress}} {{end}}'
  
- # 输出
- /web-nginx -> web-nginx_default:172.21.0.2 
+ # 输出内容
+/web-nginx -> web-nginx_default:172.21.0.2 
 /nginx -> harbor_harbor:172.18.0.10 
 /harbor-jobservice -> harbor_harbor:172.18.0.9 
 /harbor-core -> harbor_harbor:172.18.0.8 
