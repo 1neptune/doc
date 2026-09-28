@@ -1,3 +1,238 @@
+##### 为什么需要内存取证
+
+* **对抗无文件攻击** ：恶意代码不写入磁盘而是直接注入到合法进程的内存空间中执行；
+
+* **捕获易失性证据** ：内存中保存加密密钥与凭据，当前活动的网络连接，正在运行的进程及其命令行参数，剪贴板内容；
+
+* **应对反取证与数据销毁** ：攻击者常使用时间戳篡改、日志清除、内存擦除等手段，内存中可能仍保留着日志缓冲区、命令历史、注册表配置单元的未刷新版本；
+
+* **与磁盘取证互补** :  磁盘取证告诉你攻击者留下了什么，内存取证告诉你攻击者正在做什么、用什么做、以及他们试图隐藏什么;
+
+
+
+##### 内存取证的典型场景
+
+* **应急响应与事件调查** :  当发现系统被入侵时，第一时间获取内存镜像，分析恶意进程、网络连接、注入代码，还原攻击者的操作痕迹；
+
+* **恶意软件分析** ： 对于无文件恶意软件、内存驻留型恶意软件，内存取证是唯一能获取其完整样本和配置的手段；
+
+* **凭证窃取检测** ： 检测攻击者是否使用了 Mimikatz 等工具从 `lsass.exe` 内存中提取了密码或哈希；
+
+* **Rootkit 检测** ：内核级 Rootkit 会隐藏进程、文件和网络连接。内存取证可以直接分析内核结构，发现被篡改的系统调用表、隐藏的驱动对象；
+
+
+
+##### 安全人员需要分析什么
+
+* **进程分析**  ： 用于发现隐藏进程、异常父子关系和可疑命令行
+
+```bash
+Windows
+
+# 列出活动进程链表（正常进程）
+vol -f memory.dmp windows.pslist
+
+# 扫描内存池中的进程对象（可发现被摘链的隐藏进程）
+vol -f memory.dmp windows.psscan
+
+# 以树状展示父子关系，快速发现异常（如 Word 启动 cmd.exe）
+vol -f memory.dmp windows.pstree
+
+# 查看进程完整命令行参数（识别编码的 PowerShell 等）
+vol -f memory.dmp windows.cmdline
+
+
+Linux
+
+# 列出活动进程链表（正常进程）
+vol -f memory.lime linux.pslist
+
+# 以树状展示父子关系，快速发现异常（如 Web 服务启动的 Shell）
+vol -f memory.lime linux.pstree
+
+# 查看进程完整命令行参数（识别 Base64 编码、/tmp 下运行的程序等）
+vol -f memory.lime linux.psaux
+
+# 查看进程环境变量（发现 LD_PRELOAD 注入、自定义变量中的凭据）
+vol -f memory.lime linux.envars
+```
+
+
+
+* **网络连接分析** : 用于定位 C2 通信、横向移动痕迹
+
+```bash
+Windows 
+
+# 扫描内存中的网络连接对象
+vol -f memory.dmp windows.netscan
+
+# 遍历网络跟踪结构（另一套数据结构，与 netscan 互补）
+vol -f memory.dmp windows.netstat
+
+
+Linux
+
+# 列出网络连接和监听 Socket（替代 netstat）
+vol -f memory.lime linux.sockstat
+
+# 扫描内存中的网络连接结构（与 sockstat 互补）
+vol -f memory.lime linux.sockscan
+```
+
+* **恶意代码注入检测**： 用于发现无文件攻击、进程注入、Reflective DLL 注入
+
+```bash
+Windows
+
+# 扫描 RWX 内存区域和无文件的内存注入（核心插件）
+vol -f memory.dmp windows.malware.malfind
+
+# 查看指定进程的 VAD 树，确认内存权限和私有属性
+vol -f memory.dmp windows.vadinfo --pid <PID>
+
+Linux
+
+# 扫描进程内存中可疑的可执行区域（核心插件）
+vol -f memory.lime linux.malfind
+```
+
+
+
+* **Rootkit 与内核 Hook 检测**: 用于发现内核级隐藏技术
+
+```bash
+Windows
+
+# 检查 SSDT 是否被 Hook
+vol -f memory.dmp windows.ssdt
+
+# 对比模块列表（可能被 DKOM 操控）和驱动扫描（绕过 DKOM）
+vol -f memory.dmp windows.modules
+vol -f memory.dmp windows.driverscan
+
+# 列出内核回调例程（恶意驱动常注册回调）
+vol -f memory.dmp windows.callbacks
+
+
+Linux
+
+
+# 对比模块列表和内存扫描，发现隐藏的内核模块
+vol -f memory.lime linux.check_modules
+
+# 检查系统调用表是否被 Hook
+vol -f memory.lime linux.check_syscall
+
+# 检查中断描述符表（IDT）是否被篡改
+vol -f memory.lime linux.check_idt
+
+# 检查网络协议操作函数指针是否被 Hook（用于隐藏连接）
+vol -f memory.lime linux.check_afinfo
+```
+
+* **凭证与敏感信息提取** ： 用于检测凭证窃取、评估泄露范围
+
+```bash
+Windows
+
+# 提取 SAM 数据库中的本地账户 NTLM 哈希
+vol -f memory.dmp windows.hashdump
+
+# 提取 LSA secrets（服务账户密码、机器账户密码等）
+vol -f memory.dmp windows.lsadump
+
+# 提取缓存的域凭据（DCC2/MSCASH）
+vol -f memory.dmp windows.cachedump
+
+# 恢复 bash 命令历史（最有价值的取证线索之一）
+vol -f memory.lime linux.bash
+
+# 从环境变量中筛选疑似凭据（配合 grep）
+vol -f memory.lime linux.envars | grep -iE "pass|key|secret|token"
+
+# 在内存缓存中查找特定文件（如 /etc/shadow）
+vol -f memory.lime linux.pagecache.Files --find /etc/shadow
+
+# 从内存缓存中恢复 /etc/shadow 的内容
+vol -f memory.lime linux.pagecache.InodePages --find /etc/shadow --dump
+```
+
+
+
+* **持久化机制分析** ： 用于发现攻击者维持访问的痕迹
+
+```bash
+Windows
+
+# 列出加载的注册表 hive
+vol -f memory.dmp windows.registry.hivelist
+
+# 检查自启动项（Run/RunOnce）
+vol -f memory.dmp windows.registry.printkey --key "Software\Microsoft\Windows\CurrentVersion\Run"
+
+# 解码计划任务信息
+vol -f memory.dmp windows.registry.scheduled_tasks
+
+Linux 
+
+# 列出进程打开的文件（发现指向 /tmp 或已删除文件的句柄）
+vol -f memory.lime linux.lsof
+
+# 列出挂载点（发现异常的 tmpfs 或远程挂载）
+vol -f memory.lime linux.mountinfo
+```
+
+* **时间线还原** ： 用于按时间顺序聚合事件，还原攻击序列
+
+```bash
+Windows
+
+# 运行所有与时间相关的插件，按时间排序输出
+vol -f memory.dmp timeliner.Timeliner
+
+
+Linux
+# 获取系统启动时间
+vol -f memory.lime linux.boottime
+```
+
+
+
+* **执行痕迹追踪**： 用于查看程序执行历史，即使文件已被删除
+
+```bash
+Windows 
+
+# 查看 UserAssist 记录（用户执行过的程序、次数、最后运行时间）
+vol -f memory.dmp windows.registry.userassist
+
+# 读取 Shimcache（程序执行痕迹）
+vol -f memory.dmp windows.shimcachemem
+
+# 恢复命令历史（类似 Linux bash history）
+vol -f memory.dmp windows.cmdscan
+
+# 查看控制台缓冲区内容（可能包含攻击者执行的命令及输出）
+vol -f memory.dmp windows.consoles
+
+
+Linux 
+
+# 列出所有进程内存映射的 ELF 文件（发现从临时目录加载的可执行文件）
+vol -f memory.lime linux.elfs
+
+# 查看指定进程的内存映射（类似 /proc/<pid>/maps）
+vol -f memory.lime linux.proc.Maps --pid <PID>
+
+# 查看内核日志缓冲区（可能包含攻击者的操作痕迹或错误信息）
+vol -f memory.lime linux.kmsg
+```
+
+
+
+内存取证的核心价值在于：**它捕获的是系统运行时的“活”状态，这是磁盘取证无法替代的**
+
 
 
 ##### 安装volatility3
@@ -273,3 +508,5 @@ vol -f memory.lime -r json linux.malware.malfind.Malfind > /tmp/linux/malfind.js
 vol -f memory.lime linux.bash.Bash
 vol -f memory.lime -r json linux.bash.Bash > /tmp/linux/bash.json
 ```
+
+
