@@ -25,7 +25,12 @@ Volatility 3 Framework 2.28.2
 
 vmss2core.exe -W8 win10.vmsn win10.vmem -> memory.dmp
 
-# Windows
+# Windows  
+
+# DumpIt 内存快照工具
+https://www.magnetforensics.com/resources/magnet-dumpit-for-windows/
+
+scp memory.dmp root@192.168.21.242:~/memory.lime
 
 # 确认系统信息
 vol -f memory.dmp windows.info
@@ -74,6 +79,14 @@ chmod +x avml
 # 压缩内存快照大小
 
 ./avml acquire --compress memory.lime.compressed
+
+# 传输内存快照
+scp memory.lime root@192.168.21.242:~/memory.lime
+
+
+# 远程传输内存快照不落盘
+nc -l -p 9000 > ~/memory.lime
+./avml stream tcp 192.168.21.242:9000
 
 # 确认系统信息
 vol -f memory.lime banners
