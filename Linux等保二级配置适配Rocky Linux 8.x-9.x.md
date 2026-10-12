@@ -1,5 +1,3 @@
-
-
 # 一、身份鉴别
 
 ## 身份标识、鉴别、复杂度、定期更换
@@ -69,7 +67,6 @@ authselect check
 
 # 查看当前启用的功能
 authselect current
-
 
 # 编辑 faillock 配置文件
 vi /etc/security/faillock.conf
@@ -193,6 +190,8 @@ usermod -s /sbin/nologin halt
 
 # 将 shutdown 用户 shell 改为 nologin
 usermod -s /sbin/nologin shutdown
+
+userdel -r vncuser
 ```
 
 ## 最小权限与 sudo 配置
@@ -232,7 +231,7 @@ grep sudo /var/log/secure
 
 ```bash
 # 查看 auditd 状态
-systemctl status auditd
+sudo  systemctl status auditd
 
 ps -aux | grep syslog
 
@@ -241,10 +240,10 @@ ps -aux | grep rsyslog
 ps -aux | grep audit
 
 # 启用并启动 auditd
-systemctl enable --now auditd
+sudo  systemctl enable --now auditd
 
 
-vi /etc/rsyslog.conf
+sudo  vi /etc/rsyslog.conf
 
 # 记录 info 及以上日志
 *.info;mail.none;authpriv.none;cron.none    /var/log/messages
@@ -270,10 +269,10 @@ authpriv.*      @192.168.3.91
 *.err   @192.168.3.91
 
 # 重启生效
-systemctl restart rsyslog
+sudo  systemctl restart rsyslog
 -----
 
-vi /etc/audit/auditd.conf
+sudo  vi /etc/audit/auditd.conf
 
 # 存储地址
 log_file = /var/log/audit/audit.log
@@ -283,12 +282,12 @@ max_log_file = 100
 # 最多保留 7 个轮转文件
 num_logs = 7
 
-service auditd restart
+sudo  service auditd restart
 ----
 
 # 审计规则的配置文件
 
-vi /etc/audit/rules.d/audit.rules
+sudo  vi /etc/audit/rules.d/audit.rules
 
 # 监控 /etc/passwd 变更
 -w /etc/passwd -p wa -k passwd_changes
@@ -305,21 +304,20 @@ vi /etc/audit/rules.d/audit.rules
 -w /data/yyzx/docker-compose.yml -p wa -k docker_changes
 
 # 合并并加载审计规则
-augenrules --load
+sudo augenrules --load
 
 # 查看已加载规则
-auditctl -l
-
+sudo auditctl -l
 ```
 
 ## 审计记录检查
 
 ```bash
 # 查看审计日志
-ausearch -i
+sudo ausearch -i
 
 # 查看指定 key 的审计记录
-ausearch -k passwd_changes -i
+sudo ausearch -k passwd_changes -i
 ```
 
 ## 日志权限与轮转
@@ -343,7 +341,7 @@ chmod 640 /var/log/messages
 # cron 设为 640
 chmod 640 /var/log/cron
 
-vim /etc/logrotate.conf
+sudo vim /etc/logrotate.conf
 
 # 每天轮转
 daily
@@ -449,10 +447,10 @@ iptables -A INPUT -p tcp --dport 22 -j DROP
 
 ```bash
 # 查看安全补丁
-dnf updateinfo list security
+sudo dnf updateinfo list security
 
 # 安装安全更新
-dnf update --security
+sudo dnf update --security
 
 # 查看系统版本
 cat /etc/redhat-release
@@ -553,7 +551,5 @@ crontab -e
 # 每天凌晨 2 点同步
 0 2 * * * rsync -avz --delete /data/payslip/ root@<异地IP>:/backup/payslip/
 ```
-
-
 
 ## 
