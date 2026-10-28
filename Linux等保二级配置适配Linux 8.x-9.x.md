@@ -289,19 +289,13 @@ sudo  service auditd restart
 
 sudo  vi /etc/audit/rules.d/audit.rules
 
-# 监控 /etc/passwd 变更
 -w /etc/passwd -p wa -k passwd_changes
-
-# 监控 /etc/sudoers 变更
 -w /etc/sudoers -p wa -k sudoers_changes
-
-# 监控.env 变更
--w /data/payslip/.env -p wa -k env_changes
--w /data/yyzx/.env -p wa -k env_changes
-
-# 监控docker-compose.yml 变更
--w /data/payslip/docker-compose.yml -p wa -k docker_changes
--w /data/yyzx/docker-compose.yml -p wa -k docker_changes
+-w /etc/group -p wa -k group_changes
+-w /etc/crontab -p wa -k crontab_changes
+-w /etc/cron.d/ -p wa -k crontab_changes
+-w /tmp -p wa -k tmp_changes
+-w /var/tmp -p wa -k tmp_changes
 
 # 合并并加载审计规则
 sudo augenrules --load

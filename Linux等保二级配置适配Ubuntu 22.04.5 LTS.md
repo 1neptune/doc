@@ -5,8 +5,7 @@
 ### 1. 密码有效期策略
 
 ```bash
-
-sudo vi /etc/login.defs
+sudo vim /etc/login.defs
 
 PASS_MAX_DAYS 180
 PASS_MIN_DAYS 1
@@ -26,7 +25,7 @@ chage -l root
 ### 2. 密码复杂度
 
 ```bash
-sudo apt install libpam-pwquality
+sudo apt install -y libpam-pwquality
 
 sudo vi /etc/pam.d/common-password
 
@@ -96,7 +95,6 @@ source /etc/profile.d/timeout.sh
 ### 远程管理防窃听
 
 ```bash
-
 systemctl status ssh
 sudo systemctl enable --now ssh
 
@@ -111,7 +109,7 @@ sudo apt remove telnet
 ## 重要文件权限
 
 ```bash
-ls -l /etc/passwd /etc/shadow /etc/group /etc/crontab
+ls -ll /etc/passwd /etc/shadow /etc/group /etc/crontab
 
 sudo chmod 644 /etc/passwd
 sudo chmod 400 /etc/shadow
@@ -129,6 +127,16 @@ PermitRootLogin no
 
 sudo sshd -t
 sudo systemctl restart ssh
+
+
+
+sudo vim /etc/pam.d/gdm-password
+
+#auth required pam_succeed_if.so user != root quiet_success
+
+
+sudo vim /etc/pam.d/gdm-autologin
+#auth required pam_succeed_if.so user != root quiet_success
 ```
 
 ## 禁用多余默认账户
@@ -192,10 +200,11 @@ num_logs = 7
 sudo vi /etc/audit/rules.d/99-custom.rules
 -w /etc/passwd -p wa -k passwd_changes
 -w /etc/sudoers -p wa -k sudoers_changes
--w /data/payslip/.env -p wa -k env_changes
--w /data/yyzx/.env -p wa -k env_changes
--w /data/payslip/docker-compose.yml -p wa -k docker_changes
--w /data/yyzx/docker-compose.yml -p wa -k docker_changes
+-w /etc/group -p wa -k group_changes
+-w /etc/crontab -p wa -k crontab_changes
+-w /etc/cron.d/ -p wa -k crontab_changes
+-w /tmp -p wa -k tmp_changes
+-w /var/tmp -p wa -k tmp_changes
 
 
 sudo augenrules --load
@@ -261,6 +270,8 @@ sudo ufw allow ssh
 sudo ufw delete <编号>
 sudo ufw delete allow <端口/服务>
 
+apt install -y iptables-persistent
+apt install -y ipset
 ipset list
 iptables -L INPUT -n --line-numbers
 iptables -L FORWARD -n --line-numbers
@@ -293,7 +304,7 @@ AllowUsers *@192.168.3.19
 AllowUsers payslip@192.168.3.19
 
 # 限制 SSH 最大认证尝试次数
-MaxAuthTries 5
+# MaxAuthTries 5
 
 # 禁止空密码登录
 PermitEmptyPasswords no
@@ -305,14 +316,12 @@ systemctl restart sshd
 ## 漏洞修补
 
 ```bash
-
 sudo apt update
-sudo apt list --upgradable
 # 仅列出安全更新
+apt list --upgradable 2>/dev/null | grep 'jammy-security'
 apt list --upgradable 2>/dev/null | grep -i security
 
-sudo apt install unattended-upgrades
-sudo dpkg-reconfigure --priority=low unattended-upgrades
+sudo apt install --only-upgrade libbrotli1
 lsb_release -a
 ```
 
