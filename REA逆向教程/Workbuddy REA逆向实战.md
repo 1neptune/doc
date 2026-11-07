@@ -7,21 +7,21 @@ Understand how software works. Rebuild the feature you need.
 
 ## 逆向环境
 
-* node 26
+* node 26.13
 
-* python3 
+* python 3.14
 
-* ida-pro 9.5
+* ida-pro 9.3
 
 * workbuddy 
 
-* ida-pro-mcp：https://github.com/mrexodia/ida-pro-mcp
+* ida-pro-mcp：https://github.com/mrexodia/ida-pro-mcp.git
 
 * REA agent ： https://github.com/morluto/rea
 
 ## 安装MCP
 
-* workbuddy提示词：D:\ida-pro-mcp , 安装idalib-mcp 并验证可用性
+* workbuddy提示词：D:\REA\ida-pro-mcp-main.zip , 安装idalib-mcp 并验证可用性
 
 ## 安装REA agent 代理
 
@@ -35,6 +35,6 @@ Understand how software works. Rebuild the feature you need.
 
 ## REA 使用
 
-* workbuddy提示词：使用 REA 分析 E:\访问控制配置工具\访问控制配置工具.exe
+* workbuddy提示词：使用 REA 分析 D:\REA\watchdog\sangforupdater.exe
 
-* workbuddy提示词：根据 REA 的逆向分析，使用rust语言重写一个访问控制配置工具.exe ,生成后的文件保存在E:\访问控制配置工具\rust 目录下
+* workbuddy提示词：根据 REA 的逆向分析，使用rust语言重写一个sangforupdater.exe ,生成后的文件保存在D:\REA\watchdog\rust 目录下
