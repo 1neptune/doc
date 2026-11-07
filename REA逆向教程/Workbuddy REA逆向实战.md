@@ -43,6 +43,6 @@ Understand how software works. Rebuild the feature you need.
 
 * workbuddy提示词：根据 REA 的逆向分析，使用rust语言重写一个sangforupdater.exe ,生成后的文件保存在D:\REA\watchdog\rust 目录下
 
-![](D:/marktext/images/2026-11-07-17-16-27-image.png)
+![](D:/marktext/images/2026-11-07-17-21-48-image.png)
 
-![](D:/marktext/images/2026-11-07-17-19-41-image.png)
+![](D:/marktext/images/2026-11-07-17-23-25-image.png)
