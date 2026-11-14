@@ -83,6 +83,4 @@ sudo systemctl restart gdm
 sudo systemctl enable --now xrdp
 sudo systemctl restart xrdp-sesman
 sudo systemctl restart xrdp
-
-
 ```
