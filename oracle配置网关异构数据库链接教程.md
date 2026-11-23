@@ -102,18 +102,13 @@ LISTENER =
 
 SID_LIST_LISTENER =
   (SID_LIST =
-    # 192.168.3.5
-    (SID_DESC =
-      (SID_NAME = dg4msql)
-      (ORACLE_HOME = /data/app/oracle/product/19.0.0/gateway)
-      (PROGRAM = dg4msql)
-    )
-    # 192.168.3.3
+    # 192.168.3.3 ifsdata_new
     (SID_DESC =
       (SID_NAME = dg4msql_33)
       (ORACLE_HOME = /data/app/oracle/product/19.0.0/gateway)
       (PROGRAM = dg4msql)
     )
+    # 192.168.3.
   )
 EOF
 
@@ -132,12 +127,6 @@ su - oracle
 
 cat >> $ORACLE_HOME/network/admin/tnsnames.ora << 'EOF'
 
-GTWSQL_IFS =
-  (DESCRIPTION =
-    (ADDRESS = (PROTOCOL = TCP)(HOST = db)(PORT = 1522))
-    (CONNECT_DATA = (SID = dg4msql))
-    (HS = OK)
-  )
 
 GTWSQL_33 =
   (DESCRIPTION =
