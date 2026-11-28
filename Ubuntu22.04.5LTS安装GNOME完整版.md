@@ -40,6 +40,9 @@ sudo vim /etc/gdm3/custom.conf
 WaylandEnable=false
 sudo systemctl restart gdm3
 sudo systemctl restart xrdp
+vim /etc/pam.d/gdm-password
+# auth  required        pam_succeed_if.so user != root quiet_success
+sudo systemctl restart gdm3
 # 配置网络
 echo "network: {config: disabled}" | sudo tee /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
 sudo netplan apply
